@@ -52,39 +52,41 @@ export const Home: FC<HomeProps> = ({}: HomeProps) => {
   }, []);
 
   const addTodo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const todoData = {user: auth.currentUser?.uid, id: nanoid(), todo: input, done: false };
-
-    try {
-      // Add the todo data to Firestore
-      const docRef = await addDoc(collection(db, 'todos'), todoData);
-      console.log('Todo added successfully with ID: ', docRef.id);
-    } catch (error) {
-      console.error('Error adding todo: ', error);
-    }
-
-    const unsubscribe = onSnapshot(collection(db, 'todos'), (snapshot) => {
-        setTodos(
-          snapshot.docs
-            .filter((doc) => doc.data().user === auth.currentUser?.uid)
-            .map((doc) => {
-              const data = doc.data();
-              console.log('>>> data', data);
-              return {
-                user: data.user,
-                id: data.id,
-                todo: data.todo,
-                done: data.done
-              } as TodoProps;
-            })
-        );
-      });
+    if (input) {
+        e.preventDefault();
+        const todoData = {user: auth.currentUser?.uid, id: nanoid(), todo: input, done: false };
     
-      setInput('');
-      
-      return () => {
-        unsubscribe(); // Unsubscribe from the snapshot listener when the component unmounts
-      };
+        try {
+          // Add the todo data to Firestore
+          const docRef = await addDoc(collection(db, 'todos'), todoData);
+          console.log('Todo added successfully with ID: ', docRef.id);
+        } catch (error) {
+          console.error('Error adding todo: ', error);
+        }
+    
+        const unsubscribe = onSnapshot(collection(db, 'todos'), (snapshot) => {
+            setTodos(
+              snapshot.docs
+                .filter((doc) => doc.data().user === auth.currentUser?.uid)
+                .map((doc) => {
+                  const data = doc.data();
+                  console.log('>>> data', data);
+                  return {
+                    user: data.user,
+                    id: data.id,
+                    todo: data.todo,
+                    done: data.done
+                  } as TodoProps;
+                })
+            );
+          });
+        
+          setInput('');
+          
+          return () => {
+            unsubscribe(); // Unsubscribe from the snapshot listener when the component unmounts
+          };
+    }
 
   };
 
@@ -143,26 +145,28 @@ export const Home: FC<HomeProps> = ({}: HomeProps) => {
       </div>
 
       <section className="bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
+        <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto h-screen lg:py-0">
           <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-            <div className="p-6 space-y-5">
+            <div className="p-6 space-y-5 ">
               <form onSubmit={addTodo} className="flex gap-5 items-stretch">
                 <input
                   name="add todo"
                   id="email"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                  className="bg-gray-50 transition-all duration-200 ease-in-out border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                   placeholder="Add todo"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                 />
-                <button
-                  type="submit"
-                  className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </button>
+                { input &&  
+                    <button
+                    type="submit"
+                    className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" className="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                }
               </form>
 
               {todos.map((todo, index) => (
